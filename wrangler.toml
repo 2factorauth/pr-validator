@@ -1,0 +1,8 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "pr-validator"
+main = "src/router.js"
+compatibility_date = "2024-06-05"
+
+[vars]
+OWNER="2factorauth"
+SIMILARWEB_RANK_LIMIT=200_000
