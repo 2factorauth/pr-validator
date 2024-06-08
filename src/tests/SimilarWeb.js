@@ -24,7 +24,7 @@ export default async function similarWeb(domain, env) {
 	const { rank } = json.similar_rank;
 
 	if (rank > env.SIMILARWEB_RANK_LIMIT)
-		throw new Error(`${domain} is ranked above the maximum of ${env.SIMILARWEB_RANK_LIMIT} (Currently ${rank})`);
+		throw new Error(`${domain} SimilarWeb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`);
 
 	console.debug(`SimilarWeb ${domain}: ${rank}`)
 

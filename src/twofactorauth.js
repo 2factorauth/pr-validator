@@ -1,7 +1,7 @@
 import similarWeb from './tests/SimilarWeb.js';
 import Facebook from './tests/Facebook.js';
 
-export default async function twofactorauth(req, env) {
+export default async function(req, env) {
 	const { pr, repo } = req.params;
 	const repository = `${env.OWNER}/${repo}`;
 
@@ -24,7 +24,7 @@ export default async function twofactorauth(req, env) {
 
 		} catch (e) {
 			// Return an error response if validation fails
-			return new Response(`::error:: ${e.message}`, { status: 400 });
+			return new Response(`::error file=${entry.file}:: ${e.message}`, { status: 400 });
 		}
 	}
 	// Return a success response if no errors were thrown
@@ -62,8 +62,13 @@ async function fetchEntries(repo, pr) {
 			// Parse entry file as JSON
 			const f = await (await fetch(file.raw_url)).json();
 
-			// Push first object of entry file to files array
-			files.push(f[Object.keys(f)[0]]);
+			// Get first object of entry file (f)
+			const data = f[Object.keys(f)[0]]
+
+			// Append file path to object
+			data.file = file.filename
+
+			files.push(data);
 		}
 	}
 

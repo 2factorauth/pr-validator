@@ -13,14 +13,12 @@ const router = Router();
 router.get('/:repo/:pr/', async (req, env) => {
 	const { repo } = req.params;
 	switch (repo) {
-
 		case 'twofactorauth':
 			return twofactorauth(req, env);
 		case 'passkeys':
 			// return passkeys(req, env);
-			return new Response('Not Implemented', {status: 501})
+			return new Response('Not Implemented', { status: 501 });
 	}
-
 });
 
 router.all('*', () => new Response('Not Found.', { status: 404 }));
