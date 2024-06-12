@@ -15,7 +15,7 @@ export default async function similarWeb(domain, env) {
 	const json = await res.json();
 
 	// Soft fail on failure
-	console.log(json.meta.status)
+	// console.log(json.meta.status)
 	if(json.meta.status !== 'Success') return 1;
 
 	if (!Object.keys(json).includes('similar_rank'))

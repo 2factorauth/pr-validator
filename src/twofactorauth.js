@@ -1,5 +1,6 @@
 import similarWeb from './tests/SimilarWeb.js';
 import Facebook from './tests/Facebook.js';
+import Blocklist from './tests/Blocklist.js';
 
 export default async function(req, env) {
 	const { pr, repo } = req.params;
@@ -10,12 +11,15 @@ export default async function(req, env) {
 
 	for (const entry of entries) {
 		try {
+
 			// Validate primary domain
 			await similarWeb(entry.domain, env);
+			await Blocklist(entry.domain)
 
 			// Validate any additional domains
 			for (const domain of entry['additional-domains'] || []) {
 				await similarWeb(domain, env);
+				await Blocklist(entry.domain);
 			}
 
 			// Validate Facebook contact if present
