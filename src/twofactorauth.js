@@ -1,6 +1,7 @@
-import similarWeb from './tests/SimilarWeb.js';
+import SimilarWeb from './tests/SimilarWeb.js';
 import Facebook from './tests/Facebook.js';
 import Blocklist from './tests/Blocklist.js';
+import logger from './logger';
 
 export default async function(req, env) {
 	const { pr, repo } = req.params;
@@ -13,12 +14,12 @@ export default async function(req, env) {
 		try {
 
 			// Validate primary domain
-			await similarWeb(entry.domain, env);
+			await SimilarWeb(entry.domain, env);
 			await Blocklist(entry.domain)
 
 			// Validate any additional domains
 			for (const domain of entry['additional-domains'] || []) {
-				await similarWeb(domain, env);
+				await SimilarWeb(domain, env);
 				await Blocklist(entry.domain);
 			}
 
@@ -32,7 +33,7 @@ export default async function(req, env) {
 		}
 	}
 	// Return a success response if no errors were thrown
-	return new Response('OK');
+	return new Response(logger.getMessages().join('\n'));
 }
 
 /**

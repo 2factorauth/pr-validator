@@ -1,3 +1,5 @@
+import logger from '../logger.js';
+
 export default async function Facebook(handle) {
 	let res = await fetch(`https://www.facebook.com/${handle}`, {
 		cf: {
@@ -5,8 +7,8 @@ export default async function Facebook(handle) {
 			cacheEverything: true
 		}
 	});
-	console.debug(`Facebook ${handle}: ${res.status}`)
 
 	if (!res.ok) throw new Error(`Failed to fetch Facebook page ${handle}`);
+	logger.addMessage('Facebook', `${handle} found.`)
 	return true;
 }

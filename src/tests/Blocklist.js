@@ -1,3 +1,6 @@
+import logger from '../logger.js';
+
+const test = 'Blocklist';
 /**
  * List of URLs for different blocklist categories.
  */
@@ -24,7 +27,7 @@ export default async function(domain) {
 	});
 
 	await Promise.all(listPromises);
-	console.debug(`Blocklist ${domain} is not found in any list`);
+	logger.addMessage(test, `${domain} not found in any list`);
 }
 
 /**

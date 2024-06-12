@@ -1,4 +1,8 @@
-export default async function similarWeb(domain, env) {
+import logger from '../logger.js';
+
+const test = 'SimilarWeb';
+
+export default async function(domain, env) {
 	const res = await fetch(
 		`https://api.similarweb.com/v1/similar-rank/${domain}/rank?api_key=${env.SIMILARWEB_API_KEY}`,
 		{
@@ -26,7 +30,7 @@ export default async function similarWeb(domain, env) {
 	if (rank > env.SIMILARWEB_RANK_LIMIT)
 		throw new Error(`${domain} SimilarWeb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`);
 
-	console.debug(`SimilarWeb ${domain}: ${rank}`)
+	logger.addMessage(test, `${domain} ranked ${rank.toLocaleString()}`);
 
 	return 0;
 }
