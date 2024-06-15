@@ -14,6 +14,7 @@ export default async function(domain, env) {
 			}
 		});
 
+ 	if (res.status === 404) throw new Error(`${domain} doesn't have a Similarweb rank.`)
 	if (!res.ok) throw new Error('Unable to fetch website rank');
 
 	const json = await res.json();
@@ -23,12 +24,12 @@ export default async function(domain, env) {
 	if(json.meta.status !== 'Success') return 1;
 
 	if (!Object.keys(json).includes('similar_rank'))
-		throw new Error(`${domain} doesn't have a SimilarWeb rank.`);
+		throw new Error(`${domain} doesn't have a Similarweb rank.`);
 
 	const { rank } = json.similar_rank;
 
 	if (rank > env.SIMILARWEB_RANK_LIMIT)
-		throw new Error(`${domain} SimilarWeb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`);
+		throw new Error(`${domain} Similarweb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`);
 
 	logger.addMessage(test, `${domain} ranked ${rank.toLocaleString()}`);
 
