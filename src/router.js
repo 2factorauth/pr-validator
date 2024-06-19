@@ -5,7 +5,7 @@ import passkeys from './passkeys';
 export default {
 	async fetch(request, env) {
 		return router.handle(request, env);
-	}
+	},
 };
 
 const router = Router();
