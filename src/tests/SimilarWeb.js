@@ -2,6 +2,13 @@ import logger from '../logger.js';
 
 const test = 'SimilarWeb';
 
+/**
+ * Retrieve the Similarweb rank for a given domain
+ * @param {string} domain The domain to check
+ * @param {*} env The environment
+ * @param {string} [file] The filename of the entry, only should be set for non-primary domains
+ * @returns {Promise<number>} Returns `0` if it's a success, `1` otherwise
+ */
 export default async function (domain, env, file) {
 	const res = await fetch(`https://api.similarweb.com/v1/similar-rank/${domain}/rank?api_key=${env.SIMILARWEB_API_KEY}`, {
 		cf: {
