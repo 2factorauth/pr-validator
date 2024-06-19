@@ -19,7 +19,7 @@ export default async function(req, env) {
 
 			// Validate any additional domains
 			for (const domain of entry['additional-domains'] || []) {
-				await SimilarWeb(domain, env);
+				//await SimilarWeb(domain, env);
 				await Blocklist(entry.domain);
 			}
 
