@@ -1,19 +1,21 @@
 {
-  "name": "pr-validator",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev"
-  },
-  "devDependencies": {
-    "itty-router": "^3.0.12",
-    "wrangler": "^3.0.0"
-  },
-  "type": "module",
-  "dependencies": {
-    "crypto-js": "^4.2.0",
-    "oauth-1.0a": "^2.2.6"
-  }
+	"name": "pr-validator",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"format": "prettier . --write"
+	},
+	"devDependencies": {
+		"itty-router": "^3.0.12",
+		"prettier": "^3.3.2",
+		"wrangler": "^3.0.0"
+	},
+	"type": "module",
+	"dependencies": {
+		"crypto-js": "^4.2.0",
+		"oauth-1.0a": "^2.2.6"
+	}
 }

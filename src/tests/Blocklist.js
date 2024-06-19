@@ -7,7 +7,7 @@ const test = 'Blocklist';
 const lists = {
 	malware: 'https://blocklistproject.github.io/Lists/alt-version/malware-nl.txt',
 	piracy: 'https://blocklistproject.github.io/Lists/alt-version/piracy-nl.txt',
-	porn: 'https://blocklistproject.github.io/Lists/alt-version/porn-nl.txt'
+	porn: 'https://blocklistproject.github.io/Lists/alt-version/porn-nl.txt',
 };
 const cache = {}; // To cache the fetched lists
 
@@ -18,7 +18,7 @@ const cache = {}; // To cache the fetched lists
  * @returns {Promise<void>} Resolves if the domain is not found in any list, otherwise throws an error.
  * @throws Will throw an error if the domain is found in any blocklist, specifying the category.
  */
-export default async function(domain) {
+export default async function (domain) {
 	const listPromises = Object.entries(lists).map(async ([list, url]) => {
 		const domainSet = await fetchAndCacheList(url);
 		if (domainSet.has(domain)) {
@@ -40,18 +40,18 @@ async function fetchAndCacheList(url) {
 	if (!cache[url]) {
 		const res = await fetch(url, {
 			headers: {
-				'user-agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)'
+				'user-agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)',
 			},
 			cf: {
 				cacheEverything: true,
-				cacheTtl: 24 * 60 // Cache 1 day
-			}
+				cacheTtl: 24 * 60, // Cache 1 day
+			},
 		});
 		const text = await res.text();
 		const lines = text.split('\n');
 		const domainSet = new Set();
 
-		lines.forEach(line => {
+		lines.forEach((line) => {
 			const trimmedLine = line.trim();
 			if (trimmedLine && !trimmedLine.startsWith('#')) {
 				domainSet.add(trimmedLine);
