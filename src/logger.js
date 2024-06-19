@@ -9,6 +9,12 @@ class Logger {
 		this.messages.push(msg);
 	}
 
+	addWarning(file, message) {
+		const msg = `::warning file=${file}:: ${message}`;
+		console.debug(msg);
+		this.messages.push(msg);
+	}
+
 	getMessages() {
 		return this.messages;
 	}

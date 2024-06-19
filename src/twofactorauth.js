@@ -3,7 +3,7 @@ import Facebook from './tests/Facebook.js';
 import Blocklist from './tests/Blocklist.js';
 import logger from './logger';
 
-export default async function(req, env) {
+export default async function (req, env) {
 	const { pr, repo } = req.params;
 	const repository = `${env.OWNER}/${repo}`;
 
@@ -12,21 +12,18 @@ export default async function(req, env) {
 
 	for (const entry of entries) {
 		try {
-
 			// Validate primary domain
 			await SimilarWeb(entry.domain, env);
-			await Blocklist(entry.domain)
+			await Blocklist(entry.domain);
 
 			// Validate any additional domains
 			for (const domain of entry['additional-domains'] || []) {
-				await SimilarWeb(domain, env);
+				await SimilarWeb(domain, env, entry.file);
 				await Blocklist(entry.domain);
 			}
 
 			// Validate Facebook contact if present
-			if (entry.contact?.facebook)
-				await Facebook(entry.contact.facebook);
-
+			if (entry.contact?.facebook) await Facebook(entry.contact.facebook);
 		} catch (e) {
 			// Return an error response if validation fails
 			return new Response(`::error file=${entry.file}:: ${e.message}`, { status: 400 });
@@ -44,13 +41,12 @@ export default async function(req, env) {
  * @returns {Promise<*[]>} Returns all modified entry files as an array.
  */
 async function fetchEntries(repo, pr) {
-	const data = await fetch(
-		`https://api.github.com/repos/${repo}/pulls/${pr}/files`, {
-			headers: {
-				'Accept': 'application/vnd.github.v3+json',
-				'User-Agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)'
-			}
-		});
+	const data = await fetch(`https://api.github.com/repos/${repo}/pulls/${pr}/files`, {
+		headers: {
+			Accept: 'application/vnd.github.v3+json',
+			'User-Agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)',
+		},
+	});
 
 	if (!data.ok) throw new Error(await data.text());
 
@@ -68,10 +64,10 @@ async function fetchEntries(repo, pr) {
 			const f = await (await fetch(file.raw_url)).json();
 
 			// Get first object of entry file (f)
-			const data = f[Object.keys(f)[0]]
+			const data = f[Object.keys(f)[0]];
 
 			// Append file path to object
-			data.file = file.filename
+			data.file = file.filename;
 
 			files.push(data);
 		}
