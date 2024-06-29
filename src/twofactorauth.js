@@ -19,7 +19,7 @@ export default async function (req, env) {
 			// Validate any additional domains
 			for (const domain of entry['additional-domains'] || []) {
 				await SimilarWeb(domain, env, entry.file);
-				await Blocklist(entry.domain);
+				await Blocklist(domain);
 			}
 
 			// Validate Facebook contact if present
