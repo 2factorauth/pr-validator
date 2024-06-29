@@ -23,6 +23,10 @@ class Logger {
 	getMessages() {
 		return this.messages;
 	}
+
+	clearMessages(){
+		this.messages = []
+	}
 }
 
 // Create a singleton instance of Logger
