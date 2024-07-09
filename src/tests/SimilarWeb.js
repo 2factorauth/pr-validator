@@ -4,12 +4,13 @@ const test = 'SimilarWeb';
 
 /**
  * Retrieve the Similarweb rank for a given domain
- * @param {string} domain The domain to check
+ * @param {string} entryDomain The domain to check
  * @param {*} env The environment
  * @param {string} [file] The filename of the entry, should only be set for non-primary domains
  * @returns {Promise<number>} Returns `0` if it's a success, `1` otherwise
  */
-export default async function (domain, env, file) {
+export default async function (entryDomain, env, file) {
+	const domain = getBaseDomain(entryDomain);
 	const res = await fetch(`https://api.similarweb.com/v1/similar-rank/${domain}/rank?api_key=${env.SIMILARWEB_API_KEY}`, {
 		cf: {
 			cacheTtlByStatus: {
@@ -55,4 +56,19 @@ export default async function (domain, env, file) {
 	logger.addMessage(test, `${domain} ranked ${rank.toLocaleString()}`);
 
 	return 0;
+}
+
+/**
+ * Return the base domain of a domain with possible subdomains
+ * @param {string} domain The domain to parse
+ * @returns {string} The base domain
+ */
+function getBaseDomain(hostname) {
+	let parts = hostname.split('.');
+	if (parts.length <= 2) return hostname;
+
+	parts = parts.slice(-3);
+	if (['co', 'com'].includes(parts[1])) return parts.join('.');
+
+	return parts.slice(-2).join('.');
 }

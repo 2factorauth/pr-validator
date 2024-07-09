@@ -24,8 +24,8 @@ class Logger {
 		return this.messages;
 	}
 
-	clearMessages(){
-		this.messages = []
+	clearMessages() {
+		this.messages = [];
 	}
 }
 
