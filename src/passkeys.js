@@ -3,7 +3,7 @@ import Facebook from './tests/Facebook.js';
 import Blocklist from './tests/Blocklist.js';
 import logger from './logger';
 
-export default async function(req, env) {
+export default async function (req, env) {
 	const { pr, repo } = req.params;
 	const repository = `${env.OWNER}/${repo}`;
 
@@ -18,17 +18,15 @@ export default async function(req, env) {
 
 			// Validate any additional domains
 			for (const domain of entry['additional-domains'] || []) {
-				await SimilarWeb(domain, env, entry.file)
+				await SimilarWeb(domain, env, entry.file);
 				await Blocklist(domain);
 			}
 
 			// Validate Facebook contact if present
 			if (entry.contact?.facebook) await Facebook(entry.contact.facebook);
-
 		} catch (e) {
 			// Return an error response if validation fails
-			return new Response(`::error file=${entry.file}:: ${e.message}`,
-				{ status: 400 });
+			return new Response(`::error file=${entry.file}:: ${e.message}`, { status: 400 });
 		}
 	}
 
@@ -47,13 +45,12 @@ export default async function(req, env) {
  * @returns {Promise<*[]>} Returns all modified entry files as an array.
  */
 async function fetchEntries(repo, pr) {
-	const data = await fetch(
-		`https://api.github.com/repos/${repo}/pulls/${pr}/files`, {
-			headers: {
-				'Accept': 'application/vnd.github.v3+json',
-				'User-Agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)'
-			}
-		});
+	const data = await fetch(`https://api.github.com/repos/${repo}/pulls/${pr}/files`, {
+		headers: {
+			Accept: 'application/vnd.github.v3+json',
+			'User-Agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)',
+		},
+	});
 
 	if (!data.ok) throw new Error(await data.text());
 
