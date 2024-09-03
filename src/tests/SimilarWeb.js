@@ -1,6 +1,6 @@
 import logger from '../logger.js';
 
-const test = 'SimilarWeb';
+const test = 'Similarweb';
 
 /**
  * Retrieve the Similarweb rank for a given domain
@@ -26,8 +26,9 @@ export default async function (entryDomain, env, file) {
 	}
 
 	if (!res.ok) {
-		if (!file) throw new Error('Unable to fetch website rank');
-		else logger.addWarning(file, `Unable to fetch website rank for additional domain ${domain}`);
+		const errorDetails = `HTTP error ${res.status}\nError message: ${await res.text()}`;
+		if (!file) throw new Error(`Unable to fetch website rank — ${errorDetails}`);
+		else logger.addWarning(file, `Unable to fetch website rank for additional domain ${domain} — ${errorDetails}`);
 	}
 
 	const json = await res.json();
