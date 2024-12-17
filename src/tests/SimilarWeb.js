@@ -29,6 +29,8 @@ export default async function (entryDomain, env, file) {
 		const errorDetails = `HTTP error ${res.status}\nError message: ${await res.text()}`;
 		if (!file) throw new Error(`Unable to fetch website rank — ${errorDetails}`);
 		else logger.addWarning(file, `Unable to fetch website rank for additional domain ${domain} — ${errorDetails}`);
+
+		return 1;
 	}
 
 	const json = await res.json();
