@@ -22,7 +22,10 @@ export default async function (domain) {
 	const listPromises = Object.entries(lists).map(async ([list, url]) => {
 		const domainSet = await fetchAndCacheList(url);
 		if (domainSet.has(domain)) {
-			throw new Error(`${domain} is categorized as a ${list} website.`);
+			throw {
+				title: `${domain} labeled as ${list} website`,
+				message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\nSuch content is against our guidelines.`,
+			}
 		}
 	});
 
