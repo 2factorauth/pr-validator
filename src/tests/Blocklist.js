@@ -9,7 +9,6 @@ const lists = {
   piracy: 'https://blocklistproject.github.io/Lists/alt-version/piracy-nl.txt',
   porn: 'https://blocklistproject.github.io/Lists/alt-version/porn-nl.txt'
 };
-const cache = {}; // To cache the fetched lists
 
 /**
  * Checks if a given domain is present in any of the blocklists.
@@ -20,11 +19,12 @@ const cache = {}; // To cache the fetched lists
  */
 export default async function(domain) {
   const listPromises = Object.entries(lists).map(async ([list, url]) => {
-    const domainSet = await fetchAndCacheList(url);
-    if (domainSet.has(domain)) {
+    const domainSet = await findDomain(domain, url);
+    console.log(list, domainSet);
+    if (domainSet) {
       throw {
         title: `${domain} labeled as ${list} website`,
-        message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\nSuch content is against our guidelines.`
+        message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\\nSuch content is against our guidelines.`
       };
     }
   });
@@ -34,34 +34,30 @@ export default async function(domain) {
 }
 
 /**
- * Fetches a blocklist from a given URL, parses it, and caches the result.
+ * Fetches a blocklist from a given URL, parses it, searches for domain matches
  *
- * @param {string} url - The URL of the blocklist to fetch.
- * @returns {Promise<Set<string>>} A promise that resolves to a set of domains from the blocklist.
+ * @param {string} domain - The Domain to find
+ * @param {string} url - The URL of the blocklist to fetch
+ * @returns {Promise<Awaited<boolean|undefined>[]>} Returns true if a match is found, otherwise null
  */
-async function fetchAndCacheList(url) {
-  if (!cache[url]) {
-    const res = await fetch(url, {
-      headers: {
-        'user-agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)'
-      },
-      cf: {
-        cacheEverything: true,
-        cacheTtl: 24 * 60 // Cache 1 day
-      }
-    });
-    const text = await res.text();
-    const lines = text.split('\n');
-    const domainSet = new Set();
+async function findDomain(domain, url) {
+  const res = await fetch(url, {
+    headers: {
+      'user-agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)'
+    },
+    cf: {
+      cacheEverything: true,
+      cacheTtl: 2 * 24 * 60 // Cache 2 days
+    }
+  });
 
-    lines.forEach((line) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine && !trimmedLine.startsWith('#')) {
-        domainSet.add(trimmedLine);
-      }
-    });
-
-    cache[url] = domainSet;
-  }
-  return cache[url];
+  let domains = (await res.text()).split('\n');
+  let match = false;
+  await Promise.all(domains.map(async (d) => {
+    if (d === domain) {
+      match = true;
+      return true;
+    }
+  }))
+  return match;
 }

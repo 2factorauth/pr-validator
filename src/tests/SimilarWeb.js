@@ -25,7 +25,7 @@ export default async function(domain, env) {
     case 403:
       throw {
         title: 'Manual review required',
-        message: 'Monthly API limit reached.\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}'
+        message: 'Monthly API limit reached.\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}'
       };
     case 404:
       throw {
