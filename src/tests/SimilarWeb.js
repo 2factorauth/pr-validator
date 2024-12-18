@@ -69,7 +69,7 @@ export default async function(domain, env) {
     };
   }
 
-  logger.addMessage('SimilarWeb', `${domain} ranked ${rank.toLocaleString()}.`);
+  logger.addDebug('SimilarWeb', `${domain} ranked ${rank.toLocaleString()}.`);
   return rank.toLocaleString();
 }
 

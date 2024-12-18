@@ -18,19 +18,17 @@ const lists = {
  * @throws Will throw an error if the domain is found in any blocklist, specifying the category.
  */
 export default async function(domain) {
-  const listPromises = Object.entries(lists).map(async ([list, url]) => {
-    const domainSet = await findDomain(domain, url);
-    console.log(list, domainSet);
-    if (domainSet) {
-      throw {
-        title: `${domain} labeled as ${list} website`,
-        message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\\nSuch content is against our guidelines.`
-      };
-    }
-  });
-
-  await Promise.all(listPromises);
-  logger.addMessage(test, `${domain} not found in any list`);
+  await Promise.all(
+    Object.entries(lists).map(async ([list, url]) => {
+      const domainSet = await findDomain(domain, url);
+      if (domainSet) {
+        throw {
+          title: `${domain} labeled as ${list} website`,
+          message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\\nSuch content is against our guidelines.`
+        };
+      }
+    }));
+  logger.addDebug(test, `${domain} not found in any list`);
 }
 
 /**
@@ -47,7 +45,7 @@ async function findDomain(domain, url) {
     },
     cf: {
       cacheEverything: true,
-      cacheTtl: 2 * 24 * 60 // Cache 2 days
+      cacheTtl: 7 * 24 * 60 // Cache 1 week
     }
   });
 
@@ -58,6 +56,6 @@ async function findDomain(domain, url) {
       match = true;
       return true;
     }
-  }))
+  }));
   return match;
 }

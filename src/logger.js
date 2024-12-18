@@ -8,8 +8,8 @@ class Logger {
    * @param {string} test The test name
    * @param {string} message The message to log
    */
-  addMessage(test, message) {
-    const msg = `${test}: ${message}`;
+  addDebug(test, message) {
+    const msg = `::debug title=${test}:: ${message}`;
     console.debug(msg);
     this.messages.push(msg);
   }
@@ -22,7 +22,7 @@ class Logger {
    */
   addWarning(file, message, title = 'Warning') {
     const msg = `::warning file=${file},title=${title}::${message}`;
-    console.debug(msg);
+    console.warn(msg);
     this.messages.push(msg);
   }
 
