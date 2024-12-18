@@ -14,9 +14,10 @@ export default async function(domain, env) {
     {
       cf: {
         cacheTtlByStatus: {
-          '200-299': 14 * 24 * 60, // Cache 2 weeks
-          '429': 0, // Force refresh
-          '300-599': 60 // Cache 1 hour
+          '200-299': 14 * 24 * 60 * 60, // Cache 2 weeks
+          '400-403': -1, // Force refresh
+          '405-599': -1, // Force refresh
+          '404': 14 * 24 * 60 * 60, // Cache 2 weeks
         }
       }
     });

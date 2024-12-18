@@ -28,13 +28,22 @@ export default async function(req, env) {
     );
 
     // Return a success response if no errors were thrown
-    return new Response(logger.getMessages().join('\n'));
+    return new Response(logger.getMessages().join('\n'), {
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+      }
+    });
 
   } catch (e) {
     // Handle unexpected errors
     return new Response(
-      `::error file=${e.file || 'unknown'}:: Internal error: ${e.message}`,
-      { status: 500 }
+      `::warning:: Internal error: ${e.message}`,
+      {
+        status: 500,
+        headers: {
+          'content-type': 'text/plain; charset=utf-8'
+        }
+      }
     );
   }
 }
