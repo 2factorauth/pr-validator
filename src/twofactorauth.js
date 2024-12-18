@@ -7,40 +7,44 @@ export default async function(req, env) {
   const { pr, repo } = req.params;
   const repository = `${env.OWNER}/${repo}`;
 
-  // Fetch all entries modified in the PR
+// Fetch all entries modified in the PR
   const entries = await fetchEntries(repository, pr);
 
-  for (const entry of entries) {
-    try {
-      SimilarWeb(entry.domain, env).
-        catch(e => logger.addError(entry.file, e.message, e.title));
+  try {
+    // Process entries in parallel
+    await Promise.all(
+      entries.map(async (entry) => {
+        // Validate primary domain
+        SimilarWeb(entry.domain, env)
+        .catch((e) => logger.addError(entry.file, e.message, e.title));
 
-      Blocklist(entry.domain).
-        catch(e => logger.addError(entry.file, e.message, e.title));
+        Blocklist(entry.domain)
+        .catch((e) => logger.addError(entry.file, e.message, e.title));
 
-      // Validate any additional domains
-      for (const domain of entry['additional-domains'] || []) {
-        SimilarWeb(domain, env).
-          catch(e => logger.addWarning(entry.file, e.message, e.title));
+        // Validate additional domains
+        const additionalDomainPromises = (entry["additional-domains"] || []).map((domain) =>
+          SimilarWeb(domain, env)
+          .catch((e) => logger.addWarning(entry.file, e.message, e.title))
+          .then(() => Blocklist(domain).catch((e) => logger.addError(entry.file, e.message, e.title)))
+        );
 
-        Blocklist(domain).
-          catch(e => logger.addError(entry.file, e.message, e.title));
-      }
+        // Validate Facebook handle if present
+        const facebookPromise = entry.contact?.facebook
+          ? Facebook(entry.contact.facebook).catch((e) => logger.addError(entry.file, e.message, e.title))
+          : Promise.resolve(); // No Facebook handle, resolve immediately
 
-      // If present, validate Facebook handle
-      if (entry.contact?.facebook)
-        Facebook(entry.contact.facebook).
-          catch(e => logger.addError(entry.file, e.message, e.title));
+        // Wait for all tasks related to this entry to complete
+        await Promise.all([...additionalDomainPromises, facebookPromise]);
+      })
+    );
 
-    } catch (e) {
-      // Return an error response if validation fails
-      return new Response(
-        `::error file=${entry.file}:: Internal error: ${e.message}`,
-        { status: 500 });
-    }
+    // Return a success response if no errors were thrown
+    return new Response(logger.getMessages().join("\n"));
+
+  } catch (e) {
+    // Return an error response if something fails at the loop level
+    return new Response(`::error file=${e.file || "unknown"}:: Internal error: ${e.message}`, { status: 500 });
   }
-  // Return a success response if no errors were thrown
-  return new Response(logger.getMessages().join('\n'));
 }
 
 /**
