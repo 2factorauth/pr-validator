@@ -9,13 +9,9 @@
 		"start": "wrangler dev",
 		"format": "prettier . --write"
 	},
-	"dependencies": {
-		"crypto-js": "^4.2.0",
-		"oauth-1.0a": "^2.2.6"
-	},
 	"devDependencies": {
 		"itty-router": "^3.0.12",
 		"prettier": "^3.3.2",
-		"wrangler": "^3.0.0"
+		"wrangler": "^3.97.0"
 	}
 }
