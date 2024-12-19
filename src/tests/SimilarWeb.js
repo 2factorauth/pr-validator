@@ -2,12 +2,13 @@ import logger from '../logger.js';
 
 /**
  * Retrieve the Similarweb rank for a given domain
- * @param {string} domain The domain to check
+ * @param {string} fqdn The domain to check
  * @param {*} env The environment
  * @returns {Promise<string>} Returns SimilarWeb rank if found
  * @throws {Object<message, title>} Throws error object if fetching fails or rank exceeds limit
  */
-export default async function(domain, env) {
+export default async function(fqdn, env) {
+  const domain = getBaseDomain(fqdn);
   const apiKey = getAPIKey(env);
   const res = await fetch(
     `https://api.similarweb.com/v1/similar-rank/${domain}/rank?api_key=${apiKey}`,
@@ -77,4 +78,17 @@ export default async function(domain, env) {
 function getAPIKey(env) {
   const keys = env.SIMILARWEB_API_KEY.split(' ');
   return keys[Math.floor(Math.random() * keys.length)];
+}
+
+/**
+ * Return the base domain of a domain with possible subdomains
+ * @param {string} hostname The domain to parse
+ * @returns {string} The base domain
+ */
+function getBaseDomain(hostname) {
+  let parts = hostname.split('.');
+  if (parts.length <= 2) return hostname;
+  parts = parts.slice(-3);
+  if (['co', 'com'].includes(parts[1])) return parts.join('.');
+  return parts.slice(-2).join('.');
 }
