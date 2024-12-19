@@ -10,6 +10,6 @@ export default async function Facebook(handle) {
 
   throw {
     title: 'Facebook handle not found',
-    message: `Failed to find the Facebook page https://facebook.com/${handle}\\nThe page might be private or not exist.`
+    message: `Failed to find the Facebook page https://facebook.com/${handle}%0AThe page might be private or not exist.`
   };
 }

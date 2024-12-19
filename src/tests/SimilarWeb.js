@@ -27,24 +27,24 @@ export default async function(fqdn, env) {
     case 403:
       throw {
         title: 'Manual review required',
-        message: 'Monthly API limit reached.\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}'
+        message: 'Monthly API limit reached.%0APlease wait for a maintainer to review your pull request.%0Ahttps://www.similarweb.com/website/${domain}'
       };
     case 404:
       throw {
         title: `${domain} is unranked`,
-        message: `${domain} lacks a SimilarWeb rank.\\nIf this domain is an additional domain, this warning can be ignored`
+        message: `${domain} lacks a SimilarWeb rank.%0AIf this domain is an additional domain, this warning can be ignored`
       };
     case 429:
       throw {
         title: 'Manual review required',
-        message: `Rate limit exceeded for SimilarWeb API while fetching ${domain} rank.\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}`
+        message: `Rate limit exceeded for SimilarWeb API while fetching ${domain} rank.%0APlease wait for a maintainer to review your pull request.%0Ahttps://www.similarweb.com/website/${domain}`
       };
     case 200:
       break;
     default:
       throw {
         title: `Failed to review ${domain}`,
-        message: `Unable to fetch the Similarweb global rank for ${domain}\\nStatus: ${res.statusText} (${res.status})`
+        message: `Unable to fetch the Similarweb global rank for ${domain}%0AStatus: ${res.statusText} (${res.status})`
       };
   }
 
@@ -53,13 +53,13 @@ export default async function(fqdn, env) {
   // Soft fail on failure
   if (json.meta.status !== 'Success') throw {
     title: `Failed to review ${domain}`,
-    message: 'Unable to parse message from Similarweb API\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}'
+    message: 'Unable to parse message from Similarweb API%0APlease wait for a maintainer to review your pull request.%0Ahttps://www.similarweb.com/website/${domain}'
   };
 
   if (!Object.keys(json).includes('similar_rank')) {
     throw {
       title: `${domain} is unranked`,
-      message: `${domain} lacks a Similarweb rank.\\nIf this domain is an additional domain, this warning can be ignored`
+      message: `${domain} lacks a Similarweb rank.%0AIf this domain is an additional domain, this warning can be ignored`
     };
   }
 
