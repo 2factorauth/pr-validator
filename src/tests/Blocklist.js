@@ -23,7 +23,7 @@ export default async function (domain) {
       const isBlocked = await isDomainBlocked(domain, url);
       if (isBlocked) {
         throw {
-          title: `${domain} labeled as ${list} website`,
+          title: `${domain} labeled as a ${list} website`,
           message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\nSuch content is against our guidelines.`,
         };
       }
@@ -35,7 +35,7 @@ export default async function (domain) {
 /**
  * Fetches a blocklist from a given URL, parses it into a Set, and checks if the domain exists.
  *
- * @param {string} domain - The Domain to find.
+ * @param {string} domain - The domain to find.
  * @param {string} url - The URL of the blocklist to fetch.
  * @returns {Promise<boolean>} Returns true if a match is found, otherwise false.
  */
