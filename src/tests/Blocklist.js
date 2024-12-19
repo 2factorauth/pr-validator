@@ -5,11 +5,10 @@ const test = 'Blocklist';
  * List of URLs for different blocklist categories.
  */
 const lists = {
-	malware: 'https://blocklistproject.github.io/Lists/alt-version/malware-nl.txt',
-	piracy: 'https://blocklistproject.github.io/Lists/alt-version/piracy-nl.txt',
-	porn: 'https://blocklistproject.github.io/Lists/alt-version/porn-nl.txt',
+  malware: 'https://blocklistproject.github.io/Lists/alt-version/malware-nl.txt',
+  piracy: 'https://blocklistproject.github.io/Lists/alt-version/piracy-nl.txt',
+  porn: 'https://blocklistproject.github.io/Lists/alt-version/porn-nl.txt',
 };
-const cache = {}; // To cache the fetched lists
 
 /**
  * Checks if a given domain is present in any of the blocklists.
@@ -19,46 +18,43 @@ const cache = {}; // To cache the fetched lists
  * @throws Will throw an error if the domain is found in any blocklist, specifying the category.
  */
 export default async function (domain) {
-	const listPromises = Object.entries(lists).map(async ([list, url]) => {
-		const domainSet = await fetchAndCacheList(url);
-		if (domainSet.has(domain)) {
-			throw new Error(`${domain} is categorized as a ${list} website.`);
-		}
-	});
-
-	await Promise.all(listPromises);
-	logger.addMessage(test, `${domain} not found in any list`);
+  await Promise.all(
+    Object.entries(lists).map(async ([list, url]) => {
+      const isBlocked = await isDomainBlocked(domain, url);
+      if (isBlocked) {
+        throw {
+          title: `${domain} labeled as a ${list} website`,
+          message: `According to [The Block List Project](https://github.com/blocklistproject/Lists), the site ${domain} hosts content marked as ${list}.\nSuch content is against our guidelines.`,
+        };
+      }
+    })
+  );
+  logger.addDebug(test, `${domain} not found in any list`);
 }
 
 /**
- * Fetches a blocklist from a given URL, parses it, and caches the result.
+ * Fetches a blocklist from a given URL, parses it into a Set, and checks if the domain exists.
  *
+ * @param {string} domain - The domain to find.
  * @param {string} url - The URL of the blocklist to fetch.
- * @returns {Promise<Set<string>>} A promise that resolves to a set of domains from the blocklist.
+ * @returns {Promise<boolean>} Returns true if a match is found, otherwise false.
  */
-async function fetchAndCacheList(url) {
-	if (!cache[url]) {
-		const res = await fetch(url, {
-			headers: {
-				'user-agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)',
-			},
-			cf: {
-				cacheEverything: true,
-				cacheTtl: 24 * 60, // Cache 1 day
-			},
-		});
-		const text = await res.text();
-		const lines = text.split('\n');
-		const domainSet = new Set();
+async function isDomainBlocked (domain, url) {
+  const res = await fetch(url, {
+    headers: {
+      'user-agent': '2factorauth/twofactorauth (+https://2fa.directory/bots)',
+    },
+    cf: {
+      cacheEverything: true,
+      cacheTtl: 7 * 24 * 60, // Cache 1 week
+    },
+  });
 
-		lines.forEach((line) => {
-			const trimmedLine = line.trim();
-			if (trimmedLine && !trimmedLine.startsWith('#')) {
-				domainSet.add(trimmedLine);
-			}
-		});
+  if (!res.ok) {
+    logger.addDebug(test, `Unable to fetch blocklist ${url}. ${res.status}`);
+    return false; // Assume no match if the blocklist can't be fetched
+  }
 
-		cache[url] = domainSet;
-	}
-	return cache[url];
+  const blocklist = new Set((await res.text()).split('\n').map((d) => d.trim()));
+  return blocklist.has(domain);
 }

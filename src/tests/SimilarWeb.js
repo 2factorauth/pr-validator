@@ -1,77 +1,80 @@
 import logger from '../logger.js';
 
-const test = 'Similarweb';
-
 /**
  * Retrieve the Similarweb rank for a given domain
- * @param {string} entryDomain The domain to check
+ * @param {string} domain The domain to check
  * @param {*} env The environment
- * @param {string} [file] The filename of the entry, should only be set for non-primary domains
- * @returns {Promise<number>} Returns `0` if it's a success, `1` otherwise
+ * @returns {Promise<string>} Returns SimilarWeb rank if found
+ * @throws {Object<message, title>} Throws error object if fetching fails or rank exceeds limit
  */
-export default async function (entryDomain, env, file) {
-	const domain = getBaseDomain(entryDomain);
-	const res = await fetch(`https://api.similarweb.com/v1/similar-rank/${domain}/rank?api_key=${env.SIMILARWEB_API_KEY}`, {
-		cf: {
-			cacheTtlByStatus: {
-				'200-299': 7 * 24 * 60, // Cache 7 days
-				'300-599': 60, // Cache 1 hour
-			},
-		},
-	});
+export default async function(domain, env) {
+  const apiKey = getAPIKey(env);
+  const res = await fetch(
+    `https://api.similarweb.com/v1/similar-rank/${domain}/rank?api_key=${apiKey}`,
+    {
+      cf: {
+        cacheTtlByStatus: {
+          '200-299': 14 * 24 * 60 * 60, // Cache 2 weeks
+          '400-403': -1, // Force refresh
+          '405-599': -1, // Force refresh
+          '404': 14 * 24 * 60 * 60, // Cache 2 weeks
+        }
+      }
+    });
 
-	if (res.status === 404) {
-		if (!file) throw new Error(`${domain} doesn't have a Similarweb rank.`);
-		else logger.addWarning(file, `Additional domain ${domain} doesn't have a Similarweb rank.`);
-	}
+  switch (res.status) {
+    case 403:
+      throw {
+        title: 'Manual review required',
+        message: 'Monthly API limit reached.\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}'
+      };
+    case 404:
+      throw {
+        title: `${domain} is unranked`,
+        message: `${domain} lacks a SimilarWeb rank.\\nIf this domain is an additional domain, this warning can be ignored`
+      };
+    case 429:
+      throw {
+        title: 'Manual review required',
+        message: `Rate limit exceeded for SimilarWeb API while fetching ${domain} rank.\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}`
+      };
+    case 200:
+      break;
+    default:
+      throw {
+        title: `Failed to review ${domain}`,
+        message: `Unable to fetch the Similarweb global rank for ${domain}\\nStatus: ${res.statusText} (${res.status})`
+      };
+  }
 
-	if (!res.ok) {
-		const errorDetails = `HTTP error ${res.status}\nError message: ${await res.text()}`;
-		if (!file) throw new Error(`Unable to fetch website rank — ${errorDetails}`);
-		else logger.addWarning(file, `Unable to fetch website rank for additional domain ${domain} — ${errorDetails}`);
+  const json = await res.json();
 
-		return 1;
-	}
+  // Soft fail on failure
+  if (json.meta.status !== 'Success') throw {
+    title: `Failed to review ${domain}`,
+    message: 'Unable to parse message from Similarweb API\\nPlease wait for a maintainer to review your pull request.\\nhttps://www.similarweb.com/website/${domain}'
+  };
 
-	const json = await res.json();
+  if (!Object.keys(json).includes('similar_rank')) {
+    throw {
+      title: `${domain} is unranked`,
+      message: `${domain} lacks a Similarweb rank.\\nIf this domain is an additional domain, this warning can be ignored`
+    };
+  }
 
-	// Soft fail on failure
-	if (json.meta.status !== 'Success') return 1;
+  const { rank } = json.similar_rank;
+  if (rank > env.SIMILARWEB_RANK_LIMIT) {
+    throw {
+      title: `${domain} exceeds Similarweb rank limit`,
+      message: `Similarweb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`
+    };
+  }
 
-	if (!Object.keys(json).includes('similar_rank')) {
-		if (!file) throw new Error(`${domain} doesn't have a Similarweb rank.`);
-		else logger.addWarning(file, `Additional domain ${domain} doesn't have a Similarweb rank.`);
-	}
-
-	const { rank } = json.similar_rank;
-	if (rank > env.SIMILARWEB_RANK_LIMIT) {
-		if (!file)
-			throw new Error(
-				`${domain} Similarweb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`,
-			);
-		else
-			logger.addWarning(
-				file,
-				`Additional domain ${domain} Similarweb rank ${rank.toLocaleString()} exceeds the limit of ${env.SIMILARWEB_RANK_LIMIT.toLocaleString()}.`,
-			);
-	}
-
-	logger.addMessage(test, `${domain} ranked ${rank.toLocaleString()}`);
-
-	return 0;
+  logger.addDebug('Similarweb', `${domain} ranked ${rank.toLocaleString()}.`);
+  return rank.toLocaleString();
 }
 
-/**
- * Return the base domain of a domain with possible subdomains
- * @param {string} domain The domain to parse
- * @returns {string} The base domain
- */
-function getBaseDomain(hostname) {
-	let parts = hostname.split('.');
-	if (parts.length <= 2) return hostname;
-
-	parts = parts.slice(-3);
-	if (['co', 'com'].includes(parts[1])) return parts.join('.');
-
-	return parts.slice(-2).join('.');
+function getAPIKey(env) {
+  const keys = env.SIMILARWEB_API_KEY.split(' ');
+  return keys[Math.floor(Math.random() * keys.length)];
 }
